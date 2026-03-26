@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lex3 Agent Matrix Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: rgba(255,255,255,0.6);
+            font-size: 1.1em;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 25px;
+        }
+        
+        .agent-matrix {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .section-title {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(180deg, #00d4ff, #7b2cbf);
+            border-radius: 2px;
+        }
+        
+        .agents-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .agent-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 20px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .agent-row:hover {
+            background: rgba(255,255,255,0.08);
+            transform: translateX(5px);
+        }
+        
+        .agent-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            flex-shrink: 0;
+        }
+        
+        .agent-icon.active {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            box-shadow: 0 4px 15px rgba(0,212,255,0.3);
+        }
+        
+        .agent-icon.inactive {
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.4);
+        }
+        
+        .agent-info {
+            flex: 1;
+        }
+        
+        .agent-name {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .agent-desc {
+            font-size: 0.85em;
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .agent-status {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+        
+        .status-active {
+            background: rgba(0,212,255,0.2);
+            color: #00d4ff;
+        }
+        
+        .status-ready {
+            background: rgba(123,44,191,0.2);
+            color: #7b2cbf;
+        }
+        
+        .status-pending {
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .connector {
+            display: flex;
+            justify-content: center;
+            padding: 5px 0;
+        }
+        
+        .connector-line {
+            width: 2px;
+            height: 20px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.3), transparent);
+        }
+        
+        .task-panel {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.1);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+        
+        .quick-commands {
+            margin-bottom: 25px;
+        }
+        
+        .command-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .command-btn {
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .command-btn:hover {
+            background: rgba(0,212,255,0.2);
+            border-color: #00d4ff;
+            transform: translateY(-2px);
+        }
+        
+        .task-input-area {
+            margin-bottom: 25px;
+        }
+        
+        .task-input {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1em;
+            resize: none;
+            height: 100px;
+            margin-top: 15px;
+        }
+        
+        .task-input:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+        
+        .task-input::placeholder {
+            color: rgba(255,255,255,0.4);
+        }
+        
+        .execute-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #00d4ff 0%, #7b2cbf 100%);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .execute-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,212,255,0.3);
+        }
+        
+        .recent-tasks {
+            margin-top: 25px;
+        }
+        
+        .task-item {
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 3px solid #00d4ff;
+        }
+        
+        .task-item-time {
+            font-size: 0.75em;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 4px;
+        }
+        
+        .task-item-content {
+            font-size: 0.9em;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: 700;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .stat-label {
+            font-size: 0.85em;
+            color: rgba(255,255,255,0.5);
+            margin-top: 5px;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 30px 0;
+            color: rgba(255,255,255,0.4);
+            font-size: 0.85em;
+        }
+        
+        @media (max-width: 1000px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Lex3 Agent Matrix</h1>
+            <p class="subtitle">Web3法律智能协作系统 · 阶段1-2 运行中</p>
+        </header>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">11</div>
+                <div class="stat-label">Agent总数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">600+</div>
+                <div class="stat-label">动作节点</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">8</div>
+                <div class="stat-label">阶段</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">6+3+3</div>
+                <div class="stat-label">平台+网站+GEO</div>
+            </div>
+        </div>
+        
+        <div class="dashboard-grid">
+            <div class="agent-matrix">
+                <div class="section-title">Agent 矩阵</div>
+                
+                <div class="agents-flow">
+                    <!-- 协调中心 -->
+                    <div class="agent-row">
+                        <div class="agent-icon active">🎯</div>
+                        <div class="agent-info">
+                            <div class="agent-name">lex3-coordinator</div>
+                            <div class="agent-desc">协调中心 · 需求识别 · 任务分发 · 阶段判断</div>
+                        </div>
+                        <div class="agent-status status-active">运行中</div>
+                    </div>
+                    
+                    <div class="connector"><div class="connector-line"></div></div>
+                    
+                    <!-- 阶段1-2 -->
+                    <div class="agent-row">
+                        <div class="agent-icon active">📝</div>
+                        <div class="agent-info">
+                            <div class="agent-name">lex3-project</div>
+                            <div class="agent-desc">内容生产 · 案件交付 · 13节点生产线</div>
+                        </div>
+                        <div class="agent-status status-active">运行中</div>
+                    </div>
+                    
+                    <div class="connector"><div class="connector-line"></div></div>
+                    
+                    <div class="agent-row">
+                        <div class="agent-icon active">🔬</div>
+                        <div class="agent-info">
+                            <div class="agent-name">lex3-research</div>
+                            <div class="agent-desc">研究分析 · 政策追踪 · 案例收集 · 125动作</div>
+                        </div>
+                        <div class="agent-status status-active">运行中</div>
+                    </div>
+                    
+                    <div class="connector"><div class="connector-line"></div></div>
+                    
+                    <div class="agent-row">
+                        <div class="agent-icon ready">🎬</div>
+                        <div class="agent-info">
+                            <div class="agent-name">lex3-video</div>
+                            <div class="agent-desc">视频制作 · 短视频脚本 · 8节点</div>
+                        </div>
+                        <div class="agent-status status-ready">就绪</div>
+                    </div>
+                    
+                    <div class="connector"><div class="connector-line"></div></div>
+                    
+                    <!-- 阶段3-4 -->
+                    <div class="agent-row">
+                        <div class="agent-icon inactive">📊</div>
+                        <div class="agent-info">
+                            <div class="agent-name">lex3-data</div>
+                            <div class="agent-desc">数据沉淀 · 数据分析 · 6节点</div>
+                        </div>
+                        <div class="agent-status status-pending">阶段3启用</div>
+                    </div>
+                    
+                    <div class="connector"><div class="connector-line"></div></div>
+                    
+                    <!-- 发布平台 -->
+                    <div class="agent-row">
+                        <div class="agent-icon ready">📡</div>
+                        <div class="agent-info">
+                            <div class="agent-name">lex3-publishing</div>
+                            <div class="agent-desc">自媒体托管 + 网站托管 · 多平台发布 + 部署管理</div>
+                        </div>
+                        <div class="agent-status status-ready">就绪</div>
+                    </div>
+                    
+                    <div class="connector"><div class="connector-line"></div></div>
+                    
+                    <!-- GEO优化 -->
+                    <div class="agent-row">
+                        <div class="agent-icon ready">🔍</div>
+                        <div class="agent-info">
+                            <div class="agent-name">lex3-geo</div>
+                            <div class="agent-desc">GEO优化 · AI引用优化 · 知识图谱 · 6节点</div>
+                        </div>
+                        <div class="agent-status status-ready">就绪</div>
+                    </div>
+                    
+                    <div class="connector"><div class="connector-line"></div></div>
+                    
+                    <!-- 阶段5-8 -->
+                    <div class="agent-row">
+                        <div class="agent-icon inactive">⚙️</div>
+                        <div class="agent-info">
+                            <div class="agent-name">lex3-tech</div>
+                            <div class="agent-desc">技术开发 · 产品迭代 · 6节点</div>
+                        </div>
+                        <div class="agent-status status-pending">阶段5启用</div>
+                    </div>
+                    
+                    <div class="connector"><div class="connector-line"></div></div>
+                    
+                    <div class="agent-row">
+                        <div class="agent-icon inactive">🤝</div>
+                        <div class="agent-info">
+                            <div class="agent-name">lex3-service</div>
+                            <div class="agent-desc">服务拓展 · 市场拓展 · 5节点</div>
+                        </div>
+                        <div class="agent-status status-pending">阶段6启用</div>
+                    </div>
+                    
+                    <div class="connector"><div class="connector-line"></div></div>
+                    
+                    <div class="agent-row">
+                        <div class="agent-icon inactive">🌐</div>
+                        <div class="agent-info">
+                            <div class="agent-name">lex3-expansion</div>
+                            <div class="agent-desc">生态扩展 · 新领域拓展 · 5节点</div>
+                        </div>
+                        <div class="agent-status status-pending">阶段8启用</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="task-panel">
+                <div class="section-title">快速指令</div>
+                
+                <div class="quick-commands">
+                    <div class="command-grid">
+                        <button class="command-btn" onclick="setTask('写一篇关于Web3监管的文章')">📝 写文章</button>
+                        <button class="command-btn" onclick="setTask('做一个小红书笔记')">📕 小红书</button>
+                        <button class="command-btn" onclick="setTask('出一份虚拟货币案例报告')">📊 出报告</button>
+                        <button class="command-btn" onclick="setTask('做一期视频')">🎬 做视频</button>
+                        <button class="command-btn" onclick="setTask('有人咨询Web3诈骗案件')">⚖️ 接案件</button>
+                        <button class="command-btn" onclick="setTask('深度分析中国Web3监管政策')">🔬 做研究</button>
+                        <button class="command-btn" onclick="setTask('做GEO优化')">🔍 GEO优化</button>
+                        <button class="command-btn" onclick="openPublishingHub()">📡 发布Hub</button>
+                    </div>
+                </div>
+                
+                <div class="section-title">任务下达</div>
+                
+                <div class="task-input-area">
+                    <textarea class="task-input" id="taskInput" placeholder="在这里输入你的任务指令...&#10;&#10;例如：&#10;• 写一篇关于NFT诈骗的法律科普文章&#10;• 分析2024年虚拟货币监管趋势&#10;• 制作一条Web3法律风险的短视频"></textarea>
+                </div>
+                
+                <button class="execute-btn" onclick="executeTask()">▶ 执行任务</button>
+                
+                <div class="recent-tasks">
+                    <div class="section-title">最近任务</div>
+                    <div class="task-item">
+                        <div class="task-item-time">21:53</div>
+                        <div class="task-item-content">深度解读：在中国挖矿到底合不合法？</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="task-item-time">21:48</div>
+                        <div class="task-item-content">Web3创业者刑事风险系列内容</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="task-item-time">21:36</div>
+                        <div class="task-item-content">NFT Mint诈骗内容生产</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            Lex3 Agent Matrix · Powered by OpenClaw · 事实核查 + AI幻觉对抗 + 专业审美
+        </footer>
+    </div>
+    
+    <script>
+        function setTask(task) {
+            document.getElementById('taskInput').value = task;
+        }
+        
+        function executeTask() {
+            const task = document.getElementById('taskInput').value;
+            if (task.trim()) {
+                alert('任务已下达：' + task + '\n\nLex3协调中心正在调度Agent执行...');
+            } else {
+                alert('请输入任务指令');
+            }
+        }
+        
+        function openPublishingHub() {
+            window.open('lex3-publishing-hub.html', '_blank');
+        }
+    </script>
+</body>
+</html>
