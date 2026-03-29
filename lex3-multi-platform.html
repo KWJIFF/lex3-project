@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lex3 多平台分发系统 V2.0</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 { font-size: 28px; margin-bottom: 8px; }
+        .header p { opacity: 0.9; }
+        
+        .version {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .stat-card {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-card h3 { color: var(--text-light); font-size: 13px; margin-bottom: 8px; }
+        .stat-card .value { font-size: 28px; font-weight: bold; color: var(--primary); }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+        
+        @media (max-width: 1000px) {
+            .main-grid { grid-template-columns: 1fr; }
+        }
+        
+        .section {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .section h2 {
+            font-size: 16px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        
+        .tab {
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            background: #f1f5f9;
+            border: none;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        
+        .tab.active { background: var(--primary); color: white; }
+        
+        .platform-card {
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: all 0.3s;
+        }
+        
+        .platform-card.connected { border-color: var(--success); background: #f0fdf4; }
+        
+        .platform-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .platform-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            background: #f1f5f9;
+        }
+        
+        .platform-name { font-weight: 600; flex: 1; }
+        
+        .status-badge {
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+        
+        .status-connected { background: #d1fae5; color: #065f46; }
+        .status-disconnected { background: #fee2e2; color: #991b1b; }
+        
+        .platform-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn {
+            padding: 8px 14px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: #1d4ed8; }
+        
+        .btn-success { background: var(--success); color: white; }
+        .btn-outline { background: transparent; border: 1px solid #e2e8f0; }
+        
+        .content-pool {
+            border: 2px dashed #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        
+        .content-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .content-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+        
+        .content-item:hover { background: #f1f5f9; }
+        
+        .content-item.selected { background: #dbeafe; border: 2px solid var(--primary); }
+        
+        .content-title { flex: 1; font-size: 14px; }
+        
+        .content-platforms {
+            font-size: 11px;
+            color: var(--text-light);
+        }
+        
+        .queue-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        
+        .status-pending { background: var(--warning); }
+        .status-publishing { background: var(--primary); animation: pulse 1s infinite; }
+        .status-success { background: var(--success); }
+        .status-failed { background: var(--danger); }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .editor-section {
+            display: none;
+        }
+        
+        .editor-section.active { display: block; }
+        
+        .editor textarea {
+            width: 100%;
+            min-height: 300px;
+            padding: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+        }
+        
+        .editor textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .editor-toolbar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .keyword-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+        
+        .keyword-tag {
+            background: #e0e7ff;
+            color: #3730a3;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        
+        .publish-options {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+        }
+        
+        .platform-content { display: none; }
+        .platform-content.active { display: block; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>🚀 Lex3 多平台分发系统 V2.0</h1>
+            <p>自动化内容生成与分发到15+平台</p>
+        </div>
+        <div class="version">V2.0</div>
+    </div>
+    
+    <div class="stats">
+        <div class="stat-card">
+            <h3>账号总数</h3>
+            <div class="value">15</div>
+        </div>
+        <div class="stat-card">
+            <h3>已连接</h3>
+            <div class="value">3</div>
+        </div>
+        <div class="stat-card">
+            <h3>待发布</h3>
+            <div class="value">42</div>
+        </div>
+        <div class="stat-card">
+            <h3>今日发布</h3>
+            <div class="value">18</div>
+        </div>
+    </div>
+    
+    <div class="main-grid">
+        <!-- 左侧：平台管理 -->
+        <div class="section">
+            <h2>📱 平台账号管理</h2>
+            
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('chuangye')">创业媒体</button>
+                <button class="tab" onclick="showTab('falv')">法律垂直</button>
+                <button class="tab" onclick="showTab('meiti')">自媒体</button>
+            </div>
+            
+            <!-- 创业媒体 -->
+            <div id="chuangye" class="platform-content active">
+                <div class="platform-card connected">
+                    <div class="platform-header">
+                        <div class="platform-icon">🔵</div>
+                        <div class="platform-name">36氪</div>
+                        <div class="status-badge status-connected">已连接</div>
+                    </div>
+                    <div class="platform-actions">
+                        <button class="btn btn-primary" onclick="openEditor('36kr')">发布内容</button>
+                        <button class="btn btn-outline">设置</button>
+                    </div>
+                </div>
+                
+                <div class="platform-card">
+                    <div class="platform-header">
+                        <div class="platform-icon">🐯</div>
+                        <div class="platform-name">虎嗅</div>
+                        <div class="status-badge status-disconnected">未连接</div>
+                    </div>
+                    <div class="platform-actions">
+                        <button class="btn btn-primary">绑定账号</button>
+                    </div>
+                </div>
+                
+                <div class="platform-card">
+                    <div class="platform-header">
+                        <div class="platform-icon">💡</div>
+                        <div class="platform-name">创业邦</div>
+                        <div class="status-badge status-disconnected">未连接</div>
+                    </div>
+                    <div class="platform-actions">
+                        <button class="btn btn-primary">绑定账号</button>
+                    </div>
+                </div>
+                
+                <div class="platform-card">
+                    <div class="platform-header">
+                        <div class="platform-icon">⚫</div>
+                        <div class="platform-name">i黑马</div>
+                        <div class="status-badge status-disconnected">未连接</div>
+                    </div>
+                    <div class="platform-actions">
+                        <button class="btn btn-primary">绑定账号</button>
+                    </div>
+                </div>
+                
+                <div class="platform-card">
+                    <div class="platform-header">
+                        <div class="platform-icon">🖥️</div>
+                        <div class="platform-name">极客公园</div>
+                        <div class="status-badge status-disconnected">未连接</div>
+                    </div>
+                    <div class="platform-actions">
+                        <button class="btn btn-primary">绑定账号</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 法律垂直 -->
+            <div id="falv" class="platform-content">
+                <div class="platform-card connected">
+                    <div class="platform-header">
+                        <div class="platform-icon">⚖️</div>
+                        <div class="platform-name">法律快车</div>
+                        <div class="status-badge status-connected">已连接</div>
+                    </div>
+                    <div class="platform-actions">
+                        <button class="btn btn-primary" onclick="openEditor('law')">发布内容</button>
+                    </div>
+                </div>
+                
+                <div class="platform-card">
+                    <div class="platform-header">
+                        <div class="platform-icon">📋</div>
+                        <div class="platform-name">华律���</div>
+                        <div class="status-badge status-disconnected">未连接</div>
+                    </div>
+                    <div class="platform-actions">
+                        <button class="btn btn-primary">绑定账号</button>
+                    </div>
+                </div>
+                
+                <div class="platform-card">
+                    <div class="platform-header">
+                        <div class="platform-icon">🔍</div>
+                        <div class="platform-name">找法网</div>
+                        <div class="status-badge status-disconnected">未连接</div>
+                    </div>
+                    <div class="platform-actions">
+                        <button class="btn btn-primary">绑定账号</button>
+                    </div>
+                </div>
+                
+                <div class="platform-card">
+                    <div class="platform-header">
+                        <div class="platform-icon">📜</div>
+                        <div class="platform-name">律商网</div>
+                        <div class="status-badge status-disconnected">未连接</div>
+                    </div>
+                    <div class="platform-actions">
+                        <button class="btn btn-primary">绑定账号</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 自媒体 -->
+            <div id="meiti" class="platform-content">
+                <div class="platform-card connected">
+                    <div class="platform-header">
+                        <div class="platform-icon">💬</div>
+                        <div class="platform-name">知乎</div>
+                        <div class="status-badge status-connected">已连接</div>
+                    </div>
+                    <div class="platform-actions">
+                        <button class="btn btn-primary" onclick="openEditor('zhihu')">发布内容</button>
+                        <button class="btn btn-outline" onclick="openZhihu()">网页发布</button>
+                    </div>
+                </div>
+                
+                <div class="platform-card connected">
+                    <div class="platform-header">
+                        <div class="platform-icon">📱</div>
+                        <div class="platform-name">公众号</div>
+                        <div class="status-badge status-connected">已连接</div>
+                    </div>
+                    <div class="platform-actions">
+                        <button class="btn btn-primary" onclick="openEditor('wechat')">发布内容</button>
+                        <button class="btn btn-outline">草稿</button>
+                    </div>
+                </div>
+                
+                <div class="platform-card">
+                    <div class="platform-header">
+                        <div class="platform-icon">📕</div>
+                        <div class="platform-name">小红书</div>
+                        <div class="status-badge status-disconnected">未连接</div>
+                    </div>
+                    <div class="platform-actions">
+                        <button class="btn btn-primary">绑定账号</button>
+                    </div>
+                </div>
+                
+                <div class="platform-card">
+                    <div class="platform-header">
+                        <div class="platform-icon">📝</div>
+                        <div class="platform-name">头条</div>
+                        <div class="status-badge status-disconnected">未连接</div>
+                    </div>
+                    <div class="platform-actions">
+                        <button class="btn btn-primary">绑定账号</button>
+                    </div>
+                </div>
+                
+                <div class="platform-card">
+                    <div class="platform-header">
+                        <div class="platform-icon">百家</div>
+                        <div class="platform-name">百家号</div>
+                        <div class="status-badge status-disconnected">未连接</div>
+                    </div>
+                    <div class="platform-actions">
+                        <button class="btn btn-primary">绑定账号</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 右侧：内容编辑 + 发布队列 -->
+        <div>
+            <!-- 内容编辑器 -->
+            <div class="section editor-section" id="editor">
+                <h2>✏️ 内容编辑器</h2>
+                
+                <div class="editor">
+                    <div class="editor-toolbar">
+                        <button class="btn btn-outline" onclick="generateContent()">🤖 AI生成</button>
+                        <button class="btn btn-outline" onclick="optimizeSEO()">SEO优化</button>
+                        <button class="btn btn-outline" onclick="formatContent()">格式化</button>
+                        <button class="btn btn-outline" onclick="clearEditor()">清空</button>
+                    </div>
+                    
+                    <textarea id="contentEditor" placeholder="输入内容，或点击上方按钮生成..."></textarea>
+                    
+                    <div class="keyword-tags">
+                        <span style="font-size:12px;color:#64748b">关键词：</span>
+                        <span class="keyword-tag">虚拟货币</span>
+                        <span class="keyword-tag">法律风险</span>
+                        <span class="keyword-tag">合规</span>
+                        <span class="keyword-tag">Web3</span>
+                        <span class="keyword-tag">刑事风险</span>
+                    </div>
+                    
+                    <div class="publish-options">
+                        <label class="checkbox-item">
+                            <input type="checkbox" checked> 知乎
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" checked> 公众号
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox"> 36氪
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox"> 小红书
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox"> 头条
+                        </label>
+                    </div>
+                    
+                    <div style="margin-top:16px;display:flex;gap:8px;">
+                        <button class="btn btn-primary" onclick="publish()">🚀 一键发布</button>
+                        <button class="btn btn-outline" onclick="saveDraft()">📝 存草稿</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 默认显示：内容池 -->
+            <div class="section" id="contentPool">
+                <h2>📝 待发布内容池</h2>
+                
+                <div class="content-pool">
+                    <p style="color:#64748b">共 42 篇内容等待分发</p>
+                    <button class="btn btn-primary" style="margin-top:12px" onclick="showEditor()">+ 新建内容</button>
+                </div>
+                
+                <div class="content-list">
+                    <div class="content-item" onclick="selectContent(this)">
+                        <div class="content-title">虚拟货币法律风险全指南2026</div>
+                        <div class="content-platforms">知乎·公众号·36氪</div>
+                    </div>
+                    
+                    <div class="content-item" onclick="selectContent(this)">
+                        <div class="content-title">加密货币OTC交易涉嫌帮信罪案例</div>
+                        <div class="content-platforms">知乎·法律快车</div>
+                    </div>
+                    
+                    <div class="content-item" onclick="selectContent(this)">
+                        <div class="content-title">Web3项目方刑事风险防控</div>
+                        <div class="content-platforms">知乎·公众号</div>
+                    </div>
+                    
+                    <div class="content-item" onclick="selectContent(this)">
+                        <div class="content-title">币圈散户投资避坑指南</div>
+                        <div class="content-platforms">头条·小红书</div>
+                    </div>
+                    
+                    <div class="content-item" onclick="selectContent(this)">
+                        <div class="content-title">区块链合规手册2026</div>
+                        <div class="content-platforms">公众号·知乎</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 发布队列 -->
+            <div class="section" style="margin-top:24px">
+                <h2>📊 发布队列</h2>
+                
+                <div class="queue-item">
+                    <div class="status-dot status-success"></div>
+                    <span style="flex:1">36氪 - Web3法律风险指南</span>
+                    <span style="font-size:12px;color:#64748b">已完成</span>
+                </div>
+                
+                <div class="queue-item">
+                    <div class="status-dot status-publishing"></div>
+                    <span style="flex:1">知乎 - 虚拟货币案例分析</span>
+                    <span style="font-size:12px;color:#64748b">发布中...</span>
+                </div>
+                
+                <div class="queue-item">
+                    <div class="status-dot status-pending"></div>
+                    <span style="flex:1">公众号 - 区块链合规指南</span>
+                    <span style="font-size:12px;color:#64748b">等待中</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function showTab(tabId) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.platform-content').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+        
+        function showEditor() {
+            document.getElementById('contentPool').style.display = 'none';
+            document.getElementById('editor').classList.add('active');
+        }
+        
+        function openEditor(platform) {
+            showEditor();
+            document.getElementById('contentEditor').focus();
+        }
+        
+        function openZhihu() {
+            window.open('https://www.zhihu.com/question/waiting', '_blank');
+        }
+        
+        function generateContent() {
+            const topics = [
+                '虚拟货币法律风险',
+                'Web3合规指南',
+                '区块链刑事风险',
+                '加密货币投资陷阱',
+                'OTC交易法律风险'
+            ];
+            const topic = topics[Math.floor(Math.random() * topics.length)];
+            const content = `# ${topic}深度分析
+
+## 一、行业背景
+
+随着虚拟货币市场的发展，越来越多的投资者进入Web3领域，但同时也伴随着法律风险。
+
+## 二、主要风险类型
+
+### 1. 刑事风险
+- 帮信罪
+- 非法经营罪
+- 洗钱风险
+
+### 2. 民事风险
+- 合同纠纷
+- 财产损失
+
+## 三、合规建议
+
+1. 选择合规交易平台
+2. 避免OTC交易
+3. 做好KYC认证
+4. 保留交易记录
+
+## 四、案例分析
+
+近期多起案例显示，OTC交易极易涉嫌帮信罪，建议通过正规渠道交易。
+
+---
+*本文仅供普法参考，不构成法律意见*`;
+            document.getElementById('contentEditor').value = content;
+        }
+        
+        function optimizeSEO() {
+            const editor = document.getElementById('contentEditor');
+            let content = editor.value;
+            content = content.replace(/虚拟货币/g, '【虚拟货币】');
+            content = content.replace(/法律风险/g, '【法律风险】');
+            content = content.replace(/合规/g, '【合规】');
+            content += '\n\n---\n关键词：虚拟货币、法律风险、Web3、合规、刑事风险';
+            editor.value = content;
+        }
+        
+        function formatContent() {
+            const editor = document.getElementById('contentEditor');
+            let content = editor.value;
+            content = content.split('\n\n').filter(p => p.trim()).join('\n\n');
+            editor.value = content;
+        }
+        
+        function clearEditor() {
+            document.getElementById('contentEditor').value = '';
+        }
+        
+        function selectContent(el) {
+            document.querySelectorAll('.content-item').forEach(i => i.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+        
+        function saveDraft() {
+            alert('已保存到草稿箱');
+        }
+        
+        function publish() {
+            const platforms = [];
+            document.querySelectorAll('.publish-options input:checked').forEach(cb => {
+                platforms.push(cb.parentElement.textContent.trim());
+            });
+            
+            if(platforms.length === 0) {
+                alert('请选择至少一个发布平台');
+                return;
+            }
+            
+            alert('正在发布到: ' + platforms.join('、 ') + '\n\n（模拟发布，实际发布需要对接各平台API）');
+        }
+    </script>
+</body>
+</html>

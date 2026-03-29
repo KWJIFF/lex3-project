@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lex3 账户托管发布系统</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .header h1 { font-size: 22px; margin-bottom: 8px; }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .stat {
+            background: var(--card);
+            padding: 16px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .stat h3 { font-size: 12px; color: #64748b; margin-bottom: 4px; }
+        .stat .value { font-size: 24px; font-weight: bold; color: var(--primary); }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+        
+        .card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        
+        .icon { font-size: 24px; }
+        
+        .name { font-weight: 600; flex: 1; }
+        
+        .status {
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+        
+        .status-active { background: #d1fae5; color: #065f46; }
+        .status-inactive { background: #fee2e2; color: #991b1b; }
+        
+        .btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            width: 100%;
+            margin-top: 8px;
+        }
+        
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-outline { background: transparent; border: 1px solid #e2e8f0; }
+        
+        .section {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .section h2 {
+            font-size: 16px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .editor textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            resize: vertical;
+        }
+        
+        .options {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+        }
+        
+        .queue-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        
+        .dot-success { background: var(--success); }
+        .dot-pending { background: var(--warning); }
+        .dot-publishing { background: var(--primary); }
+        
+        .logs {
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 13px;
+        }
+        
+        .log-item {
+            padding: 8px 12px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .log-time { color: #94a3b8; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔐 Lex3 账户托管发布系统</h1>
+        <p style="opacity:0.9;font-size:14px">已托管账户，自动发布到各平台</p>
+    </div>
+    
+    <div class="stats">
+        <div class="stat">
+            <h3>托管账户</h3>
+            <div class="value">4</div>
+        </div>
+        <div class="stat">
+            <h3>已登录</h3>
+            <div class="value">1</div>
+        </div>
+        <div class="stat">
+            <h3>今日发布</h3>
+            <div class="value">1</div>
+        </div>
+        <div class="stat">
+            <h3>待发布</h3>
+            <div class="value">41</div>
+        </div>
+    </div>
+    
+    <div class="grid">
+        <div class="card">
+            <div class="card-header">
+                <span class="icon">💬</span>
+                <span class="name">知乎</span>
+                <span class="status status-active">已托管</span>
+            </div>
+            <p style="font-size:13px;color:#64748b;margin-bottom:8px">账号: 徐子</p>
+            <div style="display:flex;gap:8px">
+                <button class="btn btn-primary" onclick="publishTo('zhihu')">发布内容</button>
+                <button class="btn btn-outline" onclick="refreshCookie('zhihu')">刷新</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <span class="icon">📱</span>
+                <span class="name">公众号</span>
+                <span class="status status-inactive">未托管</span>
+            </div>
+            <p style="font-size:13px;color:#64748b;margin-bottom:8px">请先登录再托管</p>
+            <div style="display:flex;gap:8px">
+                <button class="btn btn-primary" onclick="loginAndTrust('wechat')">登录托管</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <span class="icon">🔵</span>
+                <span class="name">36氪</span>
+                <span class="status status-inactive">未托管</span>
+            </div>
+            <p style="font-size:13px;color:#64748b;margin-bottom:8px">请先登录再托管</p>
+            <div style="display:flex;gap:8px">
+                <button class="btn btn-primary" onclick="loginAndTrust('36kr')">登录托管</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <span class="icon">⚖️</span>
+                <span class="name">法律快车</span>
+                <span class="status status-inactive">未托管</span>
+            </div>
+            <p style="font-size:13px;color:#64748b;margin-bottom:8px">请先登录再托管</p>
+            <div style="display:flex;gap:8px">
+                <button class="btn btn-primary" onclick="loginAndTrust('law')">登录托管</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <span class="icon">📕</span>
+                <span class="name">小红书</span>
+                <span class="status status-inactive">未托管</span>
+            </div>
+            <p style="font-size:13px;color:#64748b;margin-bottom:8px">请先登录再托管</p>
+            <div style="display:flex;gap:8px">
+                <button class="btn btn-primary" onclick="loginAndTrust('xiaohongshu')">登录托管</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <span class="icon">📝</span>
+                <span class="name">头条</span>
+                <span class="status status-inactive">未托管</span>
+            </div>
+            <p style="font-size:13px;color:#64748b;margin-bottom:8px">请先登录再托管</p>
+            <div style="display:flex;gap:8px">
+                <button class="btn btn-primary" onclick="loginAndTrust('toutiao')">登录托管</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>✏️ 一键发布</h2>
+        <div class="editor">
+            <textarea id="contentEditor" placeholder="输入要发布的内容..."></textarea>
+            <div class="options">
+                <label class="checkbox-item"><input type="checkbox" checked disabled> 知乎</label>
+                <label class="checkbox-item"><input type="checkbox"> 公众号</label>
+                <label class="checkbox-item"><input type="checkbox"> 36氪</label>
+                <label class="checkbox-item"><input type="checkbox"> 小红书</label>
+                <label class="checkbox-item"><input type="checkbox"> 头条</label>
+            </div>
+            <button class="btn btn-success" style="margin-top:16px" onclick="autoPublish()">🚀 一键发布到已托管平台</button>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>📊 发布日志</h2>
+        <div class="logs">
+            <div class="log-item">
+                <span class="log-time">09:54</span> 知乎 - 发布成功「币圈散户投资避坑指南」
+            </div>
+            <div class="log-item">
+                <span class="log-time">09:52</span> 系统启动 - 账户托管初始化
+            </div>
+            <div class="log-item">
+                <span class="log-time">09:50</span> 知乎 - 账户托管成功 (徐子)
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const platforms = {
+            zhihu: { name: '知乎', url: 'https://www.zhihu.com', cookieKey: 'zhihu_cookies', status: 'active' },
+            wechat: { name: '公众号', url: 'https://mp.weixin.qq.com/', cookieKey: 'wechat_cookies', status: 'inactive' },
+            '36kr': { name: '36氪', url: 'https://www.36kr.com', cookieKey: '36kr_cookies', status: 'inactive' },
+            law: { name: '法律快车', url: 'https://www.lawfast.cn', cookieKey: 'law_cookies', status: 'inactive' },
+            xiaohongshu: { name: '小红书', url: 'https://creator.xiaohongshu.com', cookieKey: 'xhs_cookies', status: 'inactive' },
+            toutiao: { name: '头条', url: 'https://mp.toutiao.com', cookieKey: 'toutiao_cookies', status: 'inactive' }
+        };
+        
+        function loginAndTrust(platform) {
+            const p = platforms[platform];
+            if(confirm(`即将打开${p.name}登录页面。\n\n登录后点击「托管此账户」按钮完成托管。\n\n是否继续？`)) {
+                window.open(p.url, '_blank');
+            }
+        }
+        
+        function refreshCookie(platform) {
+            alert('请重新登录以刷新Cookie');
+            loginAndTrust(platform);
+        }
+        
+        function publishTo(platform) {
+            const editor = document.getElementById('contentEditor');
+            if(!editor.value.trim()) {
+                alert('请先输入内容');
+                editor.focus();
+                return;
+            }
+            
+            const p = platforms[platform];
+            if(p.status !== 'active') {
+                alert(`请先托管${p.name}账户`);
+                return;
+            }
+            
+            // 模拟发布
+            const content = editor.value.substring(0, 50);
+            alert(`正在发布到${p.name}...\n\n内容: ${content}...`);
+            
+            // 添加日志
+            const time = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            const logItem = document.createElement('div');
+            logItem.className = 'log-item';
+            logItem.innerHTML = `<span class="log-time">${time}</span> ${p.name} - 发布成功「${content}」`;
+            document.querySelector('.logs').insertBefore(logItem, document.querySelector('.logs').firstChild);
+            
+            editor.value = '';
+        }
+        
+        function autoPublish() {
+            const editor = document.getElementById('contentEditor');
+            if(!editor.value.trim()) {
+                alert('请先输入内容');
+                return;
+            }
+            
+            const checkboxes = document.querySelectorAll('.options input[type="checkbox"]');
+            const activePlatforms = [];
+            checkboxes.forEach(cb => {
+                if(cb.checked && !cb.disabled) {
+                    activePlatforms.push(cb.parentElement.textContent.trim());
+                }
+            });
+            
+            if(activePlatforms.length === 0) {
+                alert('请选择至少一个平台');
+                return;
+            }
+            
+            alert(`正在一键发布到: ${activePlatforms.join('、')}\n\n内容: ${editor.value.substring(0, 30)}...`);
+            
+            // 添加日志
+            const time = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+            const logItem = document.createElement('div');
+            logItem.className = 'log-item';
+            logItem.innerHTML = `<span class="log-time">${time}</span> 一键发布到 ${activePlatforms.join('、')} - 成功`;
+            document.querySelector('.logs').insertBefore(logItem, document.querySelector('.logs').firstChild);
+            
+            editor.value = '';
+        }
+        
+        // 保存Cookie（从浏览器扩展调用）
+        function saveTrustedCookie(platform, cookies) {
+            localStorage.setItem(platforms[platform].cookieKey, JSON.stringify(cookies));
+            platforms[platform].status = 'active';
+            alert(`${platforms[platform].name} 账户托管成功！`);
+        }
+        
+        // 检查登录状态
+        function checkLoginStatus(platform) {
+            const cookies = localStorage.getItem(platforms[platform].cookieKey);
+            return cookies ? true : false;
+        }
+    </script>
+</body>
+</html>
